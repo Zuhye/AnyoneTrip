@@ -21,4 +21,24 @@
     - server
     
     src/main/java/Barrierfree.TravelPlanner/TraevlPlannerApplication
-    이동해서 Run
+    에 있는 main에서 Run
+
+<br/>
+<Br/>
+
+## git 사용법(local: 본인 컴퓨터 / remote: 연결되어 있는 git 주소)
+#### 작업 업로드 및 다운로드
+1. git pull origin 브랜치명 // 원격 저장소에 있는 데이터를 로컬 저장소로 가져옴
+2. git add . // 본인이 작업한 파일 모두 워크트리에 추가
+3. git commit -m "설명" // 커밋해서 로컬 저장소에 저장
+4. git push origin 브랜치명 // 원격 저장소에 변경된 부분 적용
+
+---------------
+
+#### 브랜치 설정
+master: main 브랜치로 마지막 배포할 때만 사용
+<br/>
+master/dev: master에서 파생된 브랜치로 모든 개발물은 해당 브랜치에 업데이트
+<br/>
+master/dev/각자사용할 브랜치: 개인 사용할 브랜치로 각자 해당 브랜치에서 작업하며 구현된 내용은 dev 브랜치로 merge 
+
