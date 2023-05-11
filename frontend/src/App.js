@@ -1,18 +1,15 @@
-import logo from './logo.svg';
 import React, {useState, useEffect} from 'react';
+import {Routes, Route} from 'react-router-dom';
 import './App.css';
+
+import MainPage from './pages/MainPage';
 
 function App() {
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo"/>
-      </header>
-      <p className="App-intro">
-        To get started, edit <code>src/App.js</code> and save to reload.
-      </p>
-    </div>
+    <Routes>
+        <Route path="/" exact element={<MainPage/>}/>
+    </Routes>
     );
 }
 
