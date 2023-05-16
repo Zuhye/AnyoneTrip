@@ -23,3 +23,10 @@
     border: none;
     background-color: white;
 }
+
+.selectBox {
+    width: 150px;
+    font-size: small;
+    margin-left: 70px;
+    margin-top: 10px;
+}

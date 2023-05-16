@@ -10,8 +10,8 @@ export default function Header(props) {
                 </div>
                 <nav className="menu-bar">
                     <div className="list">
-                        <a>HOME</a>
-                        <a>VIEW</a>
+                        <a href='/'>HOME</a>
+                        <a href='/allList'>VIEW</a>
                         <a>LOGIN</a>
                         <a>JOIN</a>
                     </div>
