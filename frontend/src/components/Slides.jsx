@@ -14,7 +14,7 @@ export default function Slides(props) {
             <div className="slide_next_button slide_button">▶</div>
         </div>
         <div className="bottom">
-            <button>일정 생성하기</button>
+            <button className="schedule_btn">일정 생성하기</button>
         </div>
     </div>
     )
