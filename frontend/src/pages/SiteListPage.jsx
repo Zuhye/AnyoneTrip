@@ -1,9 +1,15 @@
 import {useState} from 'react';
 
 import Header from '../components/Header.jsx';
+import Footer from '../components/Footer.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import Select from 'react-select';
+
+import HeartImg from '../image/like.png';
+import EmptyHeart from '../image/heart.png';
+
 import '../css/allList.css';
+
 
 function SiteListPage(){
     return (
@@ -12,7 +18,10 @@ function SiteListPage(){
             <SearchBar/>
             <div>
                 <SelectBox/>
+                <Filtering/>
+                <CardSection/>
             </div>
+            <Footer/>
         </div>
     )
 }
@@ -47,5 +56,62 @@ function SelectBox(){
         defaultValue = {sido[0]} className='selectBox'/>
 	);
 };
+
+function CardSection() {
+    return (
+        <div className='site_container'>
+            <div className='site'>
+                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
+                <h5>장소 이름</h5>
+                <p>위치 정보</p>
+            </div>
+            <div className='site'>
+                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
+                <h5>장소 이름</h5>
+                <p>위치 정보</p>
+            </div>
+            <div className='site'>
+                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
+                <h5>장소 이름</h5>
+                <p>위치 정보</p>
+            </div>
+            <div className='site'>
+                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
+                <h5>장소 이름</h5>
+                <p>위치 정보</p>
+            </div>
+            <div className='site'>
+                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
+                <h5>장소 이름</h5>
+                <p>위치 정보</p>
+            </div>
+            <div className='site'>
+                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
+                <h5>장소 이름</h5>
+                <p>위치 정보</p>
+            </div>
+
+        </div>
+    )
+}
+
+const HeartBtn = ({like, onClick}) => {
+    return (
+        // eslint-disable-next-line jsx-a11y/alt-text
+        <img className='heart_img' src={like?HeartImg:EmptyHeart} onClick={onClick}/>
+    );
+}
+
+function Filtering() {
+    return (
+        <div className='filtering_container'>
+            <button>전체보기</button>
+            <button>관광지</button>
+            <button>맛집</button>
+            <button>숙소</button>
+            <button>문화시설</button>
+        </div>
+    )
+}
 
 export default SiteListPage;

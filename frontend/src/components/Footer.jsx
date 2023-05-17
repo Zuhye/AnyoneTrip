@@ -3,7 +3,7 @@ import '../css/home.css';
 
 export default function Footer() {
     return (
-            <footer className="container">
+            <footer className="footer_container">
                 <div className="footer">
                     <div className="letter">
                     <p>COPYRIGHT (C) ILJOE ALL RIGHTS RESERVED.</p>

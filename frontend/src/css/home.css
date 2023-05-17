@@ -37,11 +37,10 @@ a:visited { color: black; text-decoration: none;}
 
 
 .logo {
-    width: 30%;
-    height: 40px;
     margin: 5px;
     float: left;
     padding-left: 10px;
+    cursor: pointer;
 }
 
 .slide {
@@ -65,7 +64,7 @@ a:visited { color: black; text-decoration: none;}
 
 }
 
-img {
+.slide_img {
     width: 80%;
     height: 400px;
 }
@@ -81,7 +80,7 @@ img {
 
 .bottom {
     margin: 0 auto;
-    margin-top: 100px;
+    margin-top: 80px;
     width: 100px;
 }
 
@@ -97,11 +96,9 @@ img {
     cursor: pointer;
 }
 
-.container {
-    position: fixed;
+.footer_container {
     bottom: 0;
     font-size: 1rem;
-    width: 100%;
     padding: 1.2rem 5.5rem;
     background-color: #F8DEDE;
     z-index: 80;

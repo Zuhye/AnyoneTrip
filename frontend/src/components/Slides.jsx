@@ -7,7 +7,7 @@ export default function Slides(props) {
         <div className="box">
             <div className="slide">
                 <div className="slide_img">
-                    <img src='img/main_image2.jpg' alt="slide" />
+                    <img className='slide_img' src='img/main_image2.jpg' alt="slide" />
                 </div>
             </div>
         </div>
