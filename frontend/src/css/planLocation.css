@@ -1,0 +1,31 @@
+.container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: auto auto;
+}
+
+#item1 {
+  grid-column: 1 / span 1;
+  grid-row: 1 / span 2;
+  height: 600px;
+  background-color: #f7f7f7;
+}
+
+#item2 {
+  grid-column: 2 / span 1;
+  grid-row: 1 / span 1;
+  background-color: #eaeaea;
+}
+
+#item3 {
+  grid-column: 2 / span 1;
+  grid-row: 2 / span 1;
+  background-color: #eaeaea;
+}
+
+.map {
+  width: 500px;
+  height: 300px;
+
+  background-color: lightblue;
+}
