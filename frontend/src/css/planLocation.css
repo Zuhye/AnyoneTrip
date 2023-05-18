@@ -7,7 +7,7 @@
 #item1 {
   grid-column: 1 / span 1;
   grid-row: 1 / span 2;
-  height: 600px;
+  height: 800px;
   background-color: #f7f7f7;
 }
 
@@ -24,8 +24,8 @@
 }
 
 .map {
-  width: 500px;
-  height: 300px;
+  width: 1000px;
+  height: 500px;
 
   background-color: lightblue;
 }
