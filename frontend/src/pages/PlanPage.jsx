@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import Header from '../components/Header.jsx';
+import { Button, TextField } from '@mui/material';
+import { DatePicker } from '@mui/lab';
+import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+//import '@mui/lab/DatePicker/DatePicker.css';
+
 
 function PlanPage() {
   const [startDate, setStartDate] = React.useState(new Date());
   const [endDate, setEndDate] = React.useState(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleStartDateChange = (date) => {
     setStartDate(date);
@@ -15,9 +22,14 @@ function PlanPage() {
     setEndDate(date);
   }
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log(`Selected dates: ${startDate} - ${endDate}`);
+    console.log(`Search query: ${searchQuery}`);
     //선택된 날짜를 서버로 보내는 로직 추가
   };
 
@@ -30,9 +42,14 @@ function PlanPage() {
       <form>
         <div style={{ display: 'flex', justifyContent: 'space-between'}}>
             <div style={{ width: '50%' }}>
-              <label htmlFor="search">Search:</label>
-              <input type="text" id="search" name="search" />
-              <button type="submit">Search</button><br />
+            <TextField
+                id="search"
+                label="Search"
+                variant="outlined"
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+              <br />
               <label htmlFor="startDate">Start Date:</label>
               <Calendar
                 id="startDate"
@@ -54,7 +71,7 @@ function PlanPage() {
 
         </form>
         <br />
-        <button type="submit" onClick={handleSubmit}>다음</button>
+        <Button variant="outlined" type="submit" onClick={handleSubmit}>다음</Button>
       </main>
       <footer>
         <p>Footer</p>
@@ -64,4 +81,3 @@ function PlanPage() {
 }
 
 export default PlanPage;
-
