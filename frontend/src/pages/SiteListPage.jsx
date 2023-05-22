@@ -1,5 +1,7 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 
+import '../css/allList.css';
+import SearchIcon from '@mui/icons-material/Search';
 import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import SearchBar from '../components/SearchBar.jsx';
@@ -7,20 +9,67 @@ import Select from 'react-select';
 
 import HeartImg from '../image/like.png';
 import EmptyHeart from '../image/heart.png';
+import * as API from "../API/userApi.jsx";
 
 import '../css/allList.css';
 
 
 
 function SiteListPage(){
+
+    const [search, setSearch] = useState("");
+    const [site, setSite] = useState([]);
+
+    useEffect(()=> {
+        const siteData = async()=> {
+            try{
+                await API.get('/data/areabased.json').then((res)=> {
+                    if(res.data) {
+                        setSite(res.data.site);
+                        console.log("1", res.data.site);
+                    }
+                })
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        siteData();
+    }, []);
+
+    const onSearch = async (e) => {
+        console.log(search);
+        e.preventDefault();
+        const filterData = site.filter((s)=> {
+            return s.title.includes(search);
+        });
+        setSite(filterData);
+    }
+
+    const onChangeSearch = (e)=> {
+        e.preventDefault();
+        const inputValue = e.target.value;
+        setSearch(inputValue);
+        if(inputValue.trim()=== '') {
+            try {
+                API.get('/data/areabased.json').then((res) => {
+                  if (res.data) {
+                    setSite(res.data.site);
+                  }
+                })
+              } catch (e) {
+                console.error(e);
+              }
+        }
+    };
+
     return (
         <div>
             <Header/>
-            <SearchBar/>
+            <SearchBar search={search} onSearch = {onSearch} onChangeSearch = {onChangeSearch}/>
             <div>
                 <SelectBox/>
                 <Filtering/>
-                <CardSection/>
+                <CardSection site = {site}/>
             </div>
             <Footer/>
         </div>
@@ -29,7 +78,6 @@ function SiteListPage(){
 
 function SelectBox(){
     const sido = [
-    {value: "select", label: "시/도 선택"},
     {value: "Seoul", label: "서울특별시"},
     {value: "Incheon", label: "인천광역시"},
     {value: "Daejeon", label: "대전광역시"},
@@ -53,54 +101,30 @@ function SelectBox(){
 
 	return (
         <Select options={sido}
-        onChange={setSelectSido}
-        defaultValue = {sido[0]} className='selectBox'/>
+        onChange={(e)=> setSelectSido(e.value)}
+        placeholder="시/도 선택"
+        className='selectBox'
+        value={sido.filter(function (option) {
+            return option.value === selectSido;
+        })}
+        />
 	);
-};
+}
 
-function CardSection() {
+
+function CardSection({site}) {
     return (
         <div className='site_container'>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
+            {site.map((s)=> (
+            <div key={s.contentid} className='site'>
+                <div className='site_image_div'><img className='site_image' src={s.firstimage} alt='site_image'></img></div>
+                <h5>{s.title}</h5>
+                <p>{s.addr1}</p>
             </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
+            ))}
 
         </div>
     )
-}
-
-const HeartBtn = ({like, onClick}) => {
-    return (
-        // eslint-disable-next-line jsx-a11y/alt-text
-        <img className='heart_img' src={like?HeartImg:EmptyHeart} onClick={onClick}/>
-    );
 }
 
 function Filtering() {

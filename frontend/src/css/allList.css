@@ -49,7 +49,7 @@
 
 .site > h5{
     font-size: small;
-    font-weight: 100;
+    font-weight: bold;
     margin: 15px;
     margin-bottom: 0;
 }
@@ -65,8 +65,12 @@
 }
 
 .site_image{
+    width: 250px;
+    height: 150px;
     max-width: 95%;
     max-height: 100%;
+    padding: 10px;
+    border-radius: 20px;
     position: relative;
 }
 
