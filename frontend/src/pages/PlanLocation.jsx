@@ -103,13 +103,13 @@ function PlanLocation() {
 
   const [selectedMarker, setSelectedMarker] = useState(null);
 
-  var map;
   // 지도에 표시된 마커 객체를 가지고 있을 배열입니다
   var markers = [];
 
   // 별도의 객체를 활용하여 마커와 관련 정보를 저장합니다
   const [markerInfoMap, setMarkerInfoMap] = useState({});
 
+  const [overlayOpen, setOverlayOpen] = useState({});
   
   useEffect(() => {
     var container = document.getElementById('map'); //지도를 담을 영역의 DOM 레퍼런스
@@ -118,38 +118,68 @@ function PlanLocation() {
       level: 7 //지도의 레벨(확대, 축소 정도)
     };
 
-    map = new kakao.maps.Map(container, options); //지도 생성 및 객체 리턴
+    const map = new kakao.maps.Map(container, options); //지도 생성 및 객체 리턴
 
     barrierfreeInfo.forEach((info) => {
-      const { mapx, mapy, title, contentid } = info;
+      const { mapx, mapy, title, contentid, firstimage, addr1 } = info;
       const position = new kakao.maps.LatLng(parseFloat(mapy), parseFloat(mapx)); //카카오맵 LatLng는 y,x 식으로 넣어야함
-      addMarker(position, title, contentid);
+      addMarker(map, position, title, contentid, firstimage, addr1 );
     })
+
+    // map 객체를 전역 변수로 설정
+    window.map = map;
 
   }, []); // 빈 배열을 두번째 인자로 전달하여, 컴포넌트가 마운트될 때만 실행되도록 함.
 
   // 마커를 생성하고 지도위에 표시하는 함수입니다
-  function addMarker(position, title, contentid) {
+  function addMarker(map, position, title, contentid, firstimage, addr1 ) {
 
     // 마커를 생성합니다
     var marker = new kakao.maps.Marker({
       position: position
     });
 
-    // 마커를 클릭했을 때 마커 위에 표시할 인포윈도우를 생성합니다a
-    var iwContent = `<div style="padding:5px;">${title}</div>`, // 인포윈도우에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다
-      iwRemoveable = true; // removeable 속성을 ture 로 설정하면 인포윈도우를 닫을 수 있는 x버튼이 표시됩니다
+    // 마커를 클릭했을 때 마커 위에 표시할 오버레이를 생성합니다a
+    var iwContent = `<div class="wrap">
+        <div class="info">
+            <div class="title">
+                ${title}
+            </div>
+            <div class="body">
+                <div class="img">
+                    <img src="${firstimage}" width="73" height="70">
+              </div>
+                <div class="desc">
+                    <div class="ellipsis">${addr1}</div>
+                </div>
+            </div>
+        </div>    
+    </div>`; // 오버레이에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다
 
-    // 인포윈도우를 생성합니다
-    var infowindow = new kakao.maps.InfoWindow({
+    // 오버레이를 생성합니다
+    var overlay = new kakao.maps.CustomOverlay({
       content: iwContent,
-      removable: iwRemoveable
+      map: map,
+      position: marker.getPosition() 
     });
 
     // 마커에 클릭이벤트를 등록합니다
     kakao.maps.event.addListener(marker, 'click', function () {
-      // 마커 위에 인포윈도우를 표시합니다
-      infowindow.open(map, marker);
+      const markerInfo = markerInfoMap[contentid];
+      if (markerInfo) {
+        const { overlay } = markerInfo;
+        const isOpen = overlay.getMap() !== null;
+
+        // 현재 오버레이 상태에 따라 열고 닫음
+        if (isOpen) {
+          overlay.setMap(null);
+        } else {
+          overlay.setMap(map);
+        }
+
+        // 선택된 마커를 업데이트
+        setSelectedMarker(markerInfo);
+      }
     });
 
     // 마커가 지도 위에 표시되도록 설정합니다
@@ -161,13 +191,13 @@ function PlanLocation() {
     // 생성된 마커와 관련 정보를 저장합니다
     markerInfoMap[contentid] = {
       marker: marker,
-      infowindow: infowindow,
+      overlay: overlay,
       title: title,
       contentid: contentid
     };
 
     console.log(marker);
-
+    overlay.setMap(null);
   }
 
   // 리스트가 클릭되었을 때 작동할 함수
@@ -179,25 +209,24 @@ function PlanLocation() {
       parseFloat(mapx)
     );
 
-    console.log(map);
-    if (map) {
-      console.log(map);
-      map.setCenter(position); // map 객체가 유효한 경우에만 setCenter 함수 호출
+    console.log(window.map);
+    if (window.map) {
+      console.log(window.map);
+      window.map.setCenter(position); // map 객체가 유효한 경우에만 setCenter 함수 호출
     }
 
     if (selectedMarker) {
       const marker = selectedMarker;
-      marker.infowindow.close(); // 기존 마커의 인포윈도우를 닫습니다.
-    }
-
-    const markerInfo = markerInfoMap[contentid];
-    if (markerInfo) {
-      console.log("list clicked2");
-      const { marker, infowindow } = markerInfo;
-      infowindow.open(map, marker); // 새로운 마커의 인포윈도우를 엽니다.
-      setSelectedMarker(markerInfo); // 선택된 마커를 상태로 업데이트합니다.
+      marker.overlay.setMap(null); // 기존 마커의 오버레이를 닫습니다.
     }
     
+    const markerInfo = markerInfoMap[contentid];
+    if (markerInfo) {
+      const { marker } = markerInfo;
+      // 마커의 클릭 이벤트를 강제로 호출
+      kakao.maps.event.trigger(marker, 'click');
+    }
+
   };
 
   var mapobject = (
@@ -216,6 +245,8 @@ function PlanLocation() {
     ))
 
   );
+
+  var listobjects = (<li></>);
 
   var page = (
     <div className="container">
