@@ -3,9 +3,11 @@ import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import Select from 'react-select';
+import { Link } from 'react-router-dom';
 import * as API from "../API/userApi.jsx";
 
 import '../css/allList.css';
+import axios from 'axios';
 
 
 
@@ -18,11 +20,15 @@ function SiteListPage() {
 
     useEffect(()=> {
         const siteData = async()=> {
+            const api = `https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?numOfRows=10&pageNo=1&MobileOS=WIN&MobileApp=BarreierFree&serviceKey=${process.env.REACT_APP_API_KEY}&_type=json`
+
             try{
-                await API.get('/data/areabased.json').then((res)=> {
-                    if(res.data) {
-                        setSite(res.data.site);
-                        setFilteredSite(res.data.site);
+                await axios.get(api).then((res)=> {
+                    const data = res.data.response.body.items
+                    if(data) {
+                        setSite(data.item);
+                        setFilteredSite(data.item);
+                        
                     }
                 })
             } catch(e) {
@@ -143,12 +149,17 @@ function CardSection({site}) {
         <div className='site_container'>
             {site.map((s)=> (
             <div key={s.contentid} className='site'>
-                <div className='site_image_div'><img className='site_image' src={s.firstimage} alt='site_image'></img></div>
-                <h5>{s.title}</h5>
-                <p>{s.addr1}</p>
+                <Link to={`/detail/${s.contentid}`}>
+                    {s.firstimage ? (
+                        <div className='site_image_div'><img className='site_image' src={s.firstimage} alt='site_image'></img></div>
+                        ): (
+                        <div className='site_image_div'><img className='site_image' src='img/Temporary_photo.png' alt='site_image'></img></div>
+                    )}
+                 </Link>
+                    <h5>{s.title}</h5>
+                    <p>{s.addr1}</p>
             </div>
             ))}
-
         </div>
     )
 }
