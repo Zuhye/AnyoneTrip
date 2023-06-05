@@ -1,108 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header.jsx';
+import axios from 'axios';
+
+import { useParams, useLocation } from 'react-router-dom';
 
 import '../css/planLocation.css';
+
+let apiaddress = "https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?serviceKey=D%2FJ%2FlDBli945sgTmEa%2FEjij5mIiOiusk7won7b%2FJTZhT0OfGmLByJ%2F2LHpNh2bwG4jRPBRyBePiYPmd45CU0Dw%3D%3D&numOfRows=1000&pageNo=1&MobileOS=WIN&MobileApp=AppTest&listYN=Y&arrange=C&_type=json"
+let apiaddress2 = "https://apis.data.go.kr/B551011/KorWithService1/detailWithTour1?serviceKey=D%2FJ%2FlDBli945sgTmEa%2FEjij5mIiOiusk7won7b%2FJTZhT0OfGmLByJ%2F2LHpNh2bwG4jRPBRyBePiYPmd45CU0Dw%3D%3D&MobileOS=WIN&MobileApp=AppTest&_type=json&contentId="
 
 const { kakao } = window;
 window.map = null;
 
 function PlanLocation() {
-  const [barrierfreeInfo, setBarrierfreeInfo] = useState([
-    {
-      "addr1": "대구광역시 동구 효동로2길 10",
-      "addr2": "(효목동)",
-      "areacode": "4",
-      "booktour": "0",
-      "cat1": "A02",
-      "cat2": "A0206",
-      "cat3": "A02060300",
-      "contentid": "2488233",
-      "contenttypeid": "14",
-      "createdtime": "20170331002959",
-      "firstimage": "http://tong.visitkorea.or.kr/cms/resource/26/2488226_image2_1.JPG",
-      "firstimage2": "http://tong.visitkorea.or.kr/cms/resource/26/2488226_image2_1.JPG",
-      "cpyrhtDivCd": "Type3",
-      "mapx": "128.6507908775",
-      "mapy": "35.8791505263",
-      "mlevel": "6",
-      "modifiedtime": "20221014143732",
-      "sigungucode": "4",
-      "tel": "",
-      "title": "국립대구기상과학관",
-      "zipcode": "41179"
-    },
-    {
-      "addr1": "대구광역시 동구 동부로 149",
-      "addr2": "",
-      "areacode": "4",
-      "booktour": "0",
-      "cat1": "A01",
-      "cat2": "A0101",
-      "cat3": "A01010500",
-      "contentid": "2553566",
-      "contenttypeid": "14",
-      "createdtime": "20180712224509",
-      "firstimage": "http://tong.visitkorea.or.kr/cms/resource/04/2482404_image2_1.jpg",
-      "firstimage2": "http://tong.visitkorea.or.kr/cms/resource/04/2482404_image3_1.jpg",
-      "cpyrhtDivCd": "Type3",
-      "mapx": "128.6294594533",
-      "mapy": "35.8780669221",
-      "mlevel": "6",
-      "modifiedtime": "20220927112657",
-      "sigungucode": "4",
-      "tel": "",
-      "title": "대구 아쿠아리움",
-      "zipcode": "41229"
-    },
-    {
-      "addr1": "대구광역시 동구 파계로112길 17",
-      "addr2": "",
-      "areacode": "4",
-      "booktour": "0",
-      "cat1": "A02",
-      "cat2": "A0206",
-      "cat3": "A02060100",
-      "contentid": "1248810",
-      "contenttypeid": "14",
-      "createdtime": "20110402004322",
-      "firstimage": "http://tong.visitkorea.or.kr/cms/resource/25/1240825_image2_1.jpg",
-      "firstimage2": "http://tong.visitkorea.or.kr/cms/resource/25/1240825_image3_1.jpg",
-      "cpyrhtDivCd": "Type3",
-      "mapx": "128.6364782252",
-      "mapy": "35.9793444686",
-      "mlevel": "6",
-      "modifiedtime": "20220923152218",
-      "sigungucode": "4",
-      "tel": "",
-      "title": "자연염색박물관",
-      "zipcode": "41001"
-    },
-    {
-      "addr1": "대구광역시 동구 효동로2길 24",
-      "addr2": "(효목동)",
-      "areacode": "4",
-      "booktour": "0",
-      "cat1": "A02",
-      "cat2": "A0206",
-      "cat3": "A02060600",
-      "contentid": "1756202",
-      "contenttypeid": "14",
-      "createdtime": "20121123001448",
-      "firstimage": "",
-      "firstimage2": "",
-      "cpyrhtDivCd": "",
-      "mapx": "128.6516463528",
-      "mapy": "35.8793255226",
-      "mlevel": "6",
-      "modifiedtime": "20220831172245",
-      "sigungucode": "4",
-      "tel": "",
-      "title": "아양아트센터(구, 동구문화체육회관)",
-      "zipcode": "41179"
-    }
-  ]);
+  const [barrierfreeInfo, setBarrierfreeInfo] = useState([]);
 
   const [selectedMarker, setSelectedMarker] = useState(null);
+
+  const location = useLocation();
 
   // 지도에 표시된 마커 객체를 가지고 있을 배열입니다
   var markers = []; 
@@ -115,8 +30,28 @@ function PlanLocation() {
   const [selectedItems, setSelectedItems] = useState([]); //선택한 관광지 요소
 
   useEffect(() => {
-    // map 객체를 전역 변수로 설정
-    if(window.map == null)
+    const searchParams = new URLSearchParams(location.search);
+    const areaCode = searchParams.get('areaCode');
+
+    const fetchData = async()=> {
+      try{
+          const api = `${apiaddress}&areaCode=${areaCode}`
+          //console.log(api);
+          await axios.get(api).then((res)=> {
+              const data = res.data.response.body.items.item
+              setBarrierfreeInfo(data);
+              console.log(data);
+          })
+        }catch(e){
+            console.log(e)
+        }
+    }
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+
+    if(barrierfreeInfo.length > 0 && window.map == null)
     {
       var container = document.getElementById('map'); //지도를 담을 영역의 DOM 레퍼런스
       var options = { //지도를 생성할 때 필요한 기본 옵션
@@ -142,7 +77,7 @@ function PlanLocation() {
       document.removeEventListener('click', handleAddButtonClick);
     };
 
-  }, [selectedItems]); // 빈 배열을 두번째 인자로 전달하여, 컴포넌트가 마운트될 때만 실행되도록 함.
+  }, [selectedItems, barrierfreeInfo, location]); // 빈 배열을 두번째 인자로 전달하여, 컴포넌트가 마운트될 때만 실행되도록 함.
 
   // 마커를 생성하고 지도위에 표시하는 함수입니다
   function addMarker(map, position, title, contentid, firstimage, addr1 ) {
@@ -164,7 +99,7 @@ function PlanLocation() {
               </div>
               <div class="desc">
                   <div class="ellipsis">${addr1}</div>
-                  <button class="add-button" data-contentid="${contentid}">+</button>
+                  <button id="add-button" data-contentid="${contentid}">+</button>
               </div>
           </div>
       </div>
@@ -188,7 +123,14 @@ function PlanLocation() {
         if (isOpen) {
           overlay.setMap(null);
         } else {
-          overlay.setMap(map);
+          fetchOverlayContent(contentid)
+          .then((content) => {
+            overlay.setContent(content);
+            overlay.setMap(map);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
         }
 
         // 선택된 마커를 업데이트
@@ -210,8 +152,44 @@ function PlanLocation() {
       contentid: contentid
     };
 
-    console.log(marker);
+    //console.log(marker);
     overlay.setMap(null);
+  }
+
+  function fetchOverlayContent(contentid) {
+    const api = `${apiaddress2}${contentid}`;
+  
+    return axios.get(api)
+      .then((res) => {
+        // API에서 받아온 데이터를 활용하여 오버레이 내용 구성
+        const data = res.data.response.body.items.item;
+        console.log("data");
+        console.log(data);
+        const { title, image, address, elevator, restroom } = data;
+  
+        const content = `
+          <div class="wrap">
+            <div class="info">
+              <div class="title">
+                ${title}
+              </div>
+              <div class="body">
+                <div class="img">
+                  <img src="${image}" width="73" height="70">
+                </div>
+                <div class="desc">
+                  <div class="ellipsis">${address}</div>
+                  <div>엘리베이터 : ${elevator}</div>
+                  <div>화장실 : ${restroom}</div>
+                  <button id="add-button" data-contentid="${contentid}">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+  
+        return content;
+      });
   }
 
   // 리스트가 클릭되었을 때 작동할 함수
@@ -305,6 +283,7 @@ function PlanLocation() {
             <div key={item.contentid} className="item-container">
               <div className="item-title">{item.title}</div>
               <button
+                id="cancel-button"
                 className="cancel-button"
                 onClick={() => handleCancelClick(item.contentid)}
               >
