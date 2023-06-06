@@ -1,35 +1,112 @@
-import {useState} from 'react';
-
+import {useEffect, useState} from 'react';
 import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import Select from 'react-select';
-
-import HeartImg from '../image/like.png';
-import EmptyHeart from '../image/heart.png';
+import { Link } from 'react-router-dom';
+import * as API from "../API/userApi.jsx";
 
 import '../css/allList.css';
+import axios from 'axios';
 
 
 
-function SiteListPage(){
+function SiteListPage() {
+
+    const [search, setSearch] = useState("");
+    const [site, setSite] = useState([]);
+    const [selectedSido, setSelectedSido] = useState('');
+    const [filteredSite, setFilteredSite] = useState([]);
+
+    useEffect(()=> {
+        const siteData = async()=> {
+            const api = `https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?numOfRows=10&pageNo=1&MobileOS=WIN&MobileApp=BarreierFree&serviceKey=${process.env.REACT_APP_API_KEY}&_type=json`
+
+            try{
+                await axios.get(api).then((res)=> {
+                    const data = res.data.response.body.items
+                    if(data) {
+                        setSite(data.item);
+                        setFilteredSite(data.item);
+                        
+                    }
+                })
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        siteData();
+    }, []);
+
+
+    const filterSite = (searchText, selectedSido, contenttypeid) => {
+        let filteredData = site;
+
+        if(searchText) {
+            filteredData = filteredSite.filter((s)=> s.title.includes(searchText));
+        }
+
+        if(selectedSido) {
+            filteredData = filteredData.filter((s)=> s.addr1.includes(selectedSido));
+        }
+
+        if(contenttypeid != "") {
+            filteredData = filteredData.filter((s)=> s.contenttypeid === contenttypeid);
+        }
+
+        return filteredData;
+    };
+
+
+
+    const onSearch = async (e) => {
+        e.preventDefault();
+        setFilteredSite(filterSite(search, selectedSido, ""));
+    };
+
+
+
+    const onChangeSearch = (e)=> {
+        const inputValue = e.target.value;
+        setSearch(inputValue);
+
+        if(inputValue.trim()=== '') {
+           setFilteredSite(filterSite("", selectedSido, ""));
+        }
+    };
+
+
+    const onSidoChange = (option)=> {
+        setSelectedSido(option.value);
+
+        if(option.value === '') {
+            setFilteredSite(filterSite(search, "", ""));
+        } else {
+           setFilteredSite(filterSite(search, option.label, ""));
+        }
+    };
+
+    const handleFilterChange = (contenttypeid)=> {
+        setFilteredSite(filterSite(search, selectedSido, contenttypeid));
+    }
+
     return (
         <div>
             <Header/>
-            <SearchBar/>
+            <SearchBar search={search} onSearch = {onSearch} onChangeSearch = {onChangeSearch}/>
             <div>
-                <SelectBox/>
-                <Filtering/>
-                <CardSection/>
+                <SelectBox onSidoChange = {onSidoChange} />
+                <Filtering onFilterChange={handleFilterChange}/>
+                <CardSection site = {filteredSite} />
             </div>
             <Footer/>
         </div>
     )
 }
 
-function SelectBox(){
+function SelectBox({onSidoChange}){
     const sido = [
-    {value: "select", label: "시/도 선택"},
+    {value: '', label: '전체'},
     {value: "Seoul", label: "서울특별시"},
     {value: "Incheon", label: "인천광역시"},
     {value: "Daejeon", label: "대전광역시"},
@@ -46,71 +123,73 @@ function SelectBox(){
     {value: "Jeonnam", label: "전라남도"},
     {value: "Gyeongbuk", label: "경상북도"},
     {value: "Gyeongnam", label: "경상남도"},
-    {value: "Jejudo", label: "제주도"}
+    {value: "Jeju", label: "제주"}
 ]
 
     const [selectSido, setSelectSido] = useState(sido[0]);
 
+    const handleSidoChange = (option)=> {
+        setSelectSido(option);
+        onSidoChange(option);
+    }
+
 	return (
         <Select options={sido}
-        onChange={setSelectSido}
-        defaultValue = {sido[0]} className='selectBox'/>
+        onChange={handleSidoChange}
+        placeholder="시/도 선택"
+        className='selectBox'
+        value= {selectSido.value}
+        />
 	);
-};
+}
 
-function CardSection() {
+
+function CardSection({site}) {
     return (
         <div className='site_container'>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
+            {site.map((s)=> (
+            <div key={s.contentid} className='site'>
+                <Link to={`/detail/${s.contentid}`}>
+                    {s.firstimage ? (
+                        <div className='site_image_div'><img className='site_image' src={s.firstimage} alt='site_image'></img></div>
+                        ): (
+                        <div className='site_image_div'><img className='site_image' src='img/Temporary_photo.png' alt='site_image'></img></div>
+                    )}
+                 </Link>
+                    <h5>{s.title}</h5>
+                    <p>{s.addr1}</p>
             </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-            <div className='site'>
-                <div className='site_image_div'><img className='site_image' src='img/main_image.jpg' alt='site_image'></img></div>
-                <h5>장소 이름</h5>
-                <p>위치 정보</p>
-            </div>
-
+            ))}
         </div>
     )
 }
 
-const HeartBtn = ({like, onClick}) => {
-    return (
-        // eslint-disable-next-line jsx-a11y/alt-text
-        <img className='heart_img' src={like?HeartImg:EmptyHeart} onClick={onClick}/>
-    );
-}
+function Filtering({site, onFilterChange}) {
+    //12:관광지, 14:문화시설, 15:축제공연행사, 25:여행코스, 28:레포츠, 32:숙박, 38:쇼핑, 39:음식점
+    const contenttype = {
+        "12": "관광지",
+        "14": "문화시설",
+        "15": "축제공연행사",
+        "25": "여행코스",
+        "28": "레포츠",
+        "32": "숙박",
+        "38": "쇼핑",
+        "39": "음식점",
+      };
+    
+    const handleFilterChange = (contenttypeid)=> {
+        onFilterChange(contenttypeid);
+    }
 
-function Filtering() {
     return (
         <div className='filtering_container'>
-            <button>전체보기</button>
-            <button>관광지</button>
-            <button>맛집</button>
-            <button>숙소</button>
-            <button>문화시설</button>
+            <button onClick={()=> handleFilterChange("")}>전체보기</button>
+            {Object.keys(contenttype).map((id)=> (
+            <button key = {id} onClick={()=> handleFilterChange(id)}>
+                {contenttype[id]}
+            </button>
+            ))}
+
         </div>
     )
 }

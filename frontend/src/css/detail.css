@@ -1,0 +1,24 @@
+.contentBox {
+    width: auto;
+    height: auto;
+    border-top: 1px solid lightgrey;
+}
+
+.site_detail{
+    display: flex;
+    align-items: center;
+}
+
+.detail_image {
+    border-radius: 20px;
+    width: 100%;
+    height: auto;
+}
+.detail_image_div {
+    flex: 0 0 400px;
+    margin: 20px;
+}
+
+.site_info {
+    flex: 1;
+}

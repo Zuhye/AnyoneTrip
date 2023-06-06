@@ -5,6 +5,7 @@ import './App.css';
 import MainPage from './pages/MainPage';
 import SiteListPage from './pages/SiteListPage';
 import PlanLocation from './pages/PlanLocation';
+import DetailPage from './pages/DetailPage';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/" exact element={<MainPage/>}/>
         <Route path="/allList" exact element={<SiteListPage/>}/>
         <Route path="/PlanLocation" exact element={<PlanLocation/>}/>
+        <Route path="/detail/:id" exact element={<DetailPage/>}/>
     </Routes>
     );
 }
