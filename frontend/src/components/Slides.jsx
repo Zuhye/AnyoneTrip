@@ -1,4 +1,5 @@
 
+import { Link } from 'react-router-dom';
 import '../css/home.css';
 
 export default function Slides(props) {
@@ -17,7 +18,9 @@ export default function Slides(props) {
 불편 없이 이용할 수 있는 관광지들만 모았다 ! </h2>
         <h2 className="go">이제 일정을 짜 보자!</h2>
         <div className="bottom">
-            <button className="schedule_btn">일정 생성하기</button>
+            <Link to='/plan'>
+                <button className="schedule_btn">일정 생성하기</button>
+            </Link>
         </div>
     </div>
     )
