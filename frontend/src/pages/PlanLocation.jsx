@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header.jsx';
 import axios from 'axios';
 
@@ -13,6 +13,8 @@ const { kakao } = window;
 window.map = null;
 
 function PlanLocation() {
+  const listRef = useRef(null);
+
   const [barrierfreeInfo, setBarrierfreeInfo] = useState([]);
 
   const [selectedMarker, setSelectedMarker] = useState(null);
@@ -20,55 +22,54 @@ function PlanLocation() {
   const location = useLocation();
 
   // 지도에 표시된 마커 객체를 가지고 있을 배열입니다
-  var markers = []; 
+  var markers = [];
 
   // 별도의 객체를 활용하여 마커와 관련 정보를 저장합니다
   const [markerInfoMap, setMarkerInfoMap] = useState({});
 
   const [overlayOpen, setOverlayOpen] = useState({});
-  
+
   const [selectedItems, setSelectedItems] = useState([]); //선택한 관광지 요소
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const areaCode = searchParams.get('areaCode');
 
-    const fetchData = async()=> {
-      try{
-          const api = `${apiaddress}&areaCode=${areaCode}`
-          //console.log(api);
-          await axios.get(api).then((res)=> {
-              const data = res.data.response.body.items.item
-              setBarrierfreeInfo(data);
-              console.log(data);
-          })
-        }catch(e){
-            console.log(e)
-        }
+    const fetchData = async () => {
+      try {
+        const api = `${apiaddress}&areaCode=${areaCode}`
+        //console.log(api);
+        await axios.get(api).then((res) => {
+          const data = res.data.response.body.items.item
+          setBarrierfreeInfo(data);
+          console.log(data);
+        })
+      } catch (e) {
+        console.log(e)
+      }
     }
     fetchData();
   }, []);
 
   useEffect(() => {
 
-    if(barrierfreeInfo.length > 0 && window.map == null)
-    {
+    if (barrierfreeInfo.length > 0 && window.map == null) {
       var container = document.getElementById('map'); //지도를 담을 영역의 DOM 레퍼런스
       var options = { //지도를 생성할 때 필요한 기본 옵션
         center: new kakao.maps.LatLng(35.8780669221, 128.6294594533), //지도의 중심좌표. y,x 순서로 적으면됨
         level: 7 //지도의 레벨(확대, 축소 정도)
       };
-  
+
       const map = new kakao.maps.Map(container, options); //지도 생성 및 객체 리턴
-  
+
       barrierfreeInfo.forEach((info) => {
         const { mapx, mapy, title, contentid, firstimage, addr1 } = info;
         const position = new kakao.maps.LatLng(parseFloat(mapy), parseFloat(mapx)); //카카오맵 LatLng는 y,x 식으로 넣어야함
-        addMarker(map, position, title, contentid, firstimage, addr1 );
+        addMarker(map, position, title, contentid, firstimage, addr1);
       })
       window.map = map;
     }
-    
+
     // 마커 오버레이 내부의 "+" 버튼에 대한 클릭 이벤트 리스너
     document.addEventListener('click', handleAddButtonClick);
 
@@ -80,7 +81,7 @@ function PlanLocation() {
   }, [selectedItems, barrierfreeInfo, location]); // 빈 배열을 두번째 인자로 전달하여, 컴포넌트가 마운트될 때만 실행되도록 함.
 
   // 마커를 생성하고 지도위에 표시하는 함수입니다
-  function addMarker(map, position, title, contentid, firstimage, addr1 ) {
+  function addMarker(map, position, title, contentid, firstimage, addr1) {
 
     // 마커를 생성합니다
     var marker = new kakao.maps.Marker({
@@ -109,11 +110,11 @@ function PlanLocation() {
     var overlay = new kakao.maps.CustomOverlay({
       content: iwContent,
       map: map,
-      position: marker.getPosition() 
+      position: marker.getPosition()
     });
 
     // 마커에 클릭이벤트를 등록합니다
-    kakao.maps.event.addListener(marker, 'click', function () {
+    kakao.maps.event.addListener(marker, 'click', async function () {
       const markerInfo = markerInfoMap[contentid];
       if (markerInfo) {
         const { overlay } = markerInfo;
@@ -123,14 +124,14 @@ function PlanLocation() {
         if (isOpen) {
           overlay.setMap(null);
         } else {
-          fetchOverlayContent(contentid)
-          .then((content) => {
+          try {
+            // 오버레이 컨텐츠를 비동기적으로 업데이트
+            const content = await fetchOverlayContent(contentid, title, addr1, firstimage);
             overlay.setContent(content);
             overlay.setMap(map);
-          })
-          .catch((error) => {
+          } catch (error) {
             console.log(error);
-          });
+          }
         }
 
         // 선택된 마커를 업데이트
@@ -156,40 +157,48 @@ function PlanLocation() {
     overlay.setMap(null);
   }
 
-  function fetchOverlayContent(contentid) {
+  async function fetchOverlayContent(contentid, title, addr1, firstimage) {
     const api = `${apiaddress2}${contentid}`;
+
+    try {
+      const response = await fetch(api);
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
   
-    return axios.get(api)
-      .then((res) => {
-        // API에서 받아온 데이터를 활용하여 오버레이 내용 구성
-        const data = res.data.response.body.items.item;
-        console.log("data");
-        console.log(data);
-        const { title, image, address, elevator, restroom } = data;
+      const data = await response.json();
+      const {elevator, restroom, parking } = data.response.body.items.item[0];
+
+      console.log(data.response.body.items.item);
+      console.log(title);
   
-        const content = `
-          <div class="wrap">
-            <div class="info">
-              <div class="title">
-                ${title}
+      const content = `
+        <div class="wrap">
+          <div class="info">
+            <div class="title">
+              ${title}
+            </div>
+            <div class="body">
+              <div class="img">
+                <img src="${firstimage}" width="73" height="70">
               </div>
-              <div class="body">
-                <div class="img">
-                  <img src="${image}" width="73" height="70">
-                </div>
-                <div class="desc">
-                  <div class="ellipsis">${address}</div>
-                  <div>엘리베이터 : ${elevator}</div>
-                  <div>화장실 : ${restroom}</div>
-                  <button id="add-button" data-contentid="${contentid}">+</button>
-                </div>
+              <div class="desc">
+                <div class="ellipsis">${addr1}</div>
+                <div>주차장 : ${parking}</div>
+                <div>엘리베이터 : ${elevator}</div>
+                <div>화장실 : ${restroom}</div>
+                <button id="add-button" data-contentid="${contentid}">+</button>
               </div>
             </div>
           </div>
-        `;
+        </div>
+      `;
   
-        return content;
-      });
+      return content;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   // 리스트가 클릭되었을 때 작동할 함수
@@ -211,7 +220,7 @@ function PlanLocation() {
       const marker = selectedMarker;
       marker.overlay.setMap(null); // 기존 마커의 오버레이를 닫습니다.
     }
-    
+
     const markerInfo = markerInfoMap[contentid];
     if (markerInfo) {
       const { marker } = markerInfo;
@@ -224,19 +233,19 @@ function PlanLocation() {
   // 오버레이의 + 버튼 클릭 이벤트 처리 함수
   function handleAddButtonClick(event) {
     event.stopPropagation(); // 이벤트 전파 중단
-  
+
     const contentid = event.target.dataset.contentid;
-  
+
     // 이미 선택된 항목 중에 동일한 contentid가 있는지 확인
     const isDuplicate = selectedItems.some((item) => item.contentid === contentid);
-  
+
     console.log(isDuplicate);
     console.log(selectedItems);
     if (isDuplicate) {
       // 이미 선택된 항목 중에 동일한 contentid가 있다면 아무 작업을 수행하지 않음
       return;
     }
-  
+
     // 선택된 마커 정보 가져오기
     const markerInfo = markerInfoMap[contentid];
     if (markerInfo) {
@@ -251,7 +260,7 @@ function PlanLocation() {
     );
   };
 
-  var mapobject = ( 
+  var mapobject = (
     <div id="map" className="map"></div>
   );
 
@@ -267,10 +276,18 @@ function PlanLocation() {
     ))
   );
 
+  const handleConfirmClick = () => {
+    // item-container의 정보를 다른 API로 전송하는 로직을 작성합니다
+    // 여기서 selectedItems 배열에 접근하여 필요한 데이터를 전송할 수 있습니다
+    console.log("selectedItems");
+    console.log(selectedItems);
+    // 여기에 API 호출 또는 데이터 처리 로직을 추가합니다
+  };
+
   var page = (
     <div className="container">
       <div id="listcontainer">
-        <ul>
+        <ul className="list" ref={listRef}>
           {listobject}
         </ul>
       </div>
@@ -291,7 +308,13 @@ function PlanLocation() {
               </button>
             </div>
           ))}
-          <button>확정하기</button>
+            <button
+              id="confirm-button"
+              className="confirm-button"
+              onClick={handleConfirmClick}
+            >
+              확정하기
+            </button>
         </div>
       </div>
     </div>
