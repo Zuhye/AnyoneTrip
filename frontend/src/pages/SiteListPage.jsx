@@ -20,7 +20,7 @@ function SiteListPage() {
 
     useEffect(()=> {
         const siteData = async()=> {
-            const api = `https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?numOfRows=10&pageNo=1&MobileOS=WIN&MobileApp=BarreierFree&serviceKey=${process.env.REACT_APP_API_KEY}&_type=json`
+            const api = `https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?numOfRows=30&pageNo=1&MobileOS=WIN&MobileApp=BarreierFree&serviceKey=${process.env.REACT_APP_API_KEY}&_type=json&arrange=Q`
 
             try{
                 await axios.get(api).then((res)=> {

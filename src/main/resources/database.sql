@@ -15,6 +15,5 @@ CREATE TABLE Plans(
     trip_name VARCHAR(64) NOT NULL,
     date DATE NOT NULL,
     place JSON,
-    PRIMARY KEY(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    PRIMARY KEY(id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
