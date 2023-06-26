@@ -2,18 +2,17 @@ import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import Header from '../components/Header.jsx';
+import Footer from '../components/Footer.jsx';
+import Select from 'react-select';
 import { Button, TextField } from '@mui/material';
-import { DatePicker } from '@mui/lab';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
-//import '@mui/lab/DatePicker/DatePicker.css';
-
+import axios from 'axios';
+import '../css/planpage.css';
 
 function PlanPage() {
   const [startDate, setStartDate] = React.useState(new Date());
   const [endDate, setEndDate] = React.useState(new Date());
-  const [searchQuery, setSearchQuery] = useState('');
-
+  const [selectedOption, setSelectedOption] = useState(null);
+  
   const handleStartDateChange = (date) => {
     setStartDate(date);
   }
@@ -22,16 +21,34 @@ function PlanPage() {
     setEndDate(date);
   }
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-  }
-
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log(`Selected dates: ${startDate} - ${endDate}`);
-    console.log(`Search query: ${searchQuery}`);
-    //선택된 날짜를 서버로 보내는 로직 추가
+    console.log(`Selected location: ${selectedOption}`);
+    axios.post('/api/submit', {
+      location: selectedOption,
+      startDate: startDate,
+      endDate: endDate
+    })
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(error => {
+      console.error(error);
+    });
   };
+
+
+  const MyButton = () => {
+    return (
+      <div className="my-button">
+        <Button variant="contained" color="primary" type="submit" onClick={handleSubmit}>
+          다음
+        </Button>
+      </div>
+    );
+  };
+  
 
   return (
     <div>
@@ -40,17 +57,14 @@ function PlanPage() {
       </header>
       <main>
       <form>
-        <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-            <div style={{ width: '50%' }}>
-            <TextField
-                id="search"
-                label="Search"
-                variant="outlined"
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-              <br />
-              <label htmlFor="startDate">Start Date:</label>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        장소 : <LocationSelector />
+      </div>
+      <br/>
+      <div className="calendar-container">
+            <div className="calendar-wrapper">
+            
+              <label htmlFor="startDate">시작일</label>
               <Calendar
                 id="startDate"
                 name="startDate"
@@ -58,8 +72,8 @@ function PlanPage() {
                 onChange={handleStartDateChange}
               />
             </div>
-            <div style={{ width: '50%' }}>
-              <label htmlFor="endDate">End Date:</label>
+            <div className="calendar-wrapper">
+              <label htmlFor="endDate">종료일</label>
               <Calendar
                 id="endDate"
                 name="endDate"
@@ -71,13 +85,53 @@ function PlanPage() {
 
         </form>
         <br />
-        <Button variant="outlined" type="submit" onClick={handleSubmit}>다음</Button>
+        <MyButton/>
       </main>
       <footer>
-        <p>Footer</p>
+      <Footer/>
       </footer>
     </div>
   );
 }
 
-export default PlanPage;
+function LocationSelector() {
+  const [selectedOption, setSelectedOption] = useState(null);
+
+  const handleChange = (selectedOption) => {
+    setSelectedOption(selectedOption);
+  };
+
+  const options = [
+    {value: '', label: '전체'},
+    {value: "Seoul", label: "서울특별시"},
+    {value: "Incheon", label: "인천광역시"},
+    {value: "Daejeon", label: "대전광역시"},
+    {value: "Kwangju", label: "광주광역시"},
+    {value: "Daegu", label: "대구광역시"},
+    {value: "Ulsan", label: "울산광역시"},
+    {value: "Busan", label: "부산광역시"},
+    {value: "Daejeon", label: "대전광역시"},
+    {value: "Gyeonggi", label: "경기도"},
+    {value: "Gangwon", label: "강원도"},
+    {value: "Chungbuk", label: "충청북도"},
+    {value: "Chungnam", label: "충청남도"},
+    {value: "Jeonbuk", label: "전라북도"},
+    {value: "Jeonnam", label: "전라남도"},
+    {value: "Gyeongbuk", label: "경상북도"},
+    {value: "Gyeongnam", label: "경상남도"},
+    {value: "Jeju", label: "제주"}
+  ];
+
+  return (
+    <div className="location-selector">
+      <Select
+        value={selectedOption}
+        options={options}
+        onChange={handleChange}
+        placeholder="시/도 선택"
+      />
+    </div>
+  );
+}
+
+export default PlanPage; 
