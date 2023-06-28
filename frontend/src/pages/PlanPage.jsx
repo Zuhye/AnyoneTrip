@@ -5,6 +5,7 @@ import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import Select from 'react-select';
 import { Button, TextField } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../css/planpage.css';
 
@@ -12,6 +13,7 @@ function PlanPage() {
   const [startDate, setStartDate] = React.useState(new Date());
   const [endDate, setEndDate] = React.useState(new Date());
   const [selectedOption, setSelectedOption] = useState(null);
+  const navigate = useNavigate();
   
   const handleStartDateChange = (date) => {
     setStartDate(date);
@@ -21,21 +23,19 @@ function PlanPage() {
     setEndDate(date);
   }
 
+  const handleLocationChange = ( selectedOption)=> {
+    setSelectedOption(selectedOption);
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log(`Selected dates: ${startDate} - ${endDate}`);
-    console.log(`Selected location: ${selectedOption}`);
-    axios.post('/api/submit', {
-      location: selectedOption,
-      startDate: startDate,
-      endDate: endDate
-    })
-    .then(response => {
-      console.log(response.data);
-    })
-    .catch(error => {
-      console.error(error);
-    });
+    const startDateString = startDate.toISOString().substring(0, 10);
+    const endDateString = endDate.toISOString().substring(0, 10);
+    console.log(`Selected dates: ${startDateString} - ${endDateString}`);
+    console.log(`Selected location: ${selectedOption.value}`);
+    const areaCode = selectedOption ? selectedOption.value : '';
+    const url = `/PlanLocation?areaCode=${areaCode}&startDate=${startDateString}&endDate=${endDateString}`
+    navigate(url);
   };
 
 
@@ -58,7 +58,7 @@ function PlanPage() {
       <main>
       <form>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        장소 : <LocationSelector />
+        장소 : <LocationSelector onLoationChange={handleLocationChange}/>
       </div>
       <br/>
       <div className="calendar-container">
@@ -94,32 +94,33 @@ function PlanPage() {
   );
 }
 
-function LocationSelector() {
+function LocationSelector({onLoationChange}) {
   const [selectedOption, setSelectedOption] = useState(null);
 
   const handleChange = (selectedOption) => {
     setSelectedOption(selectedOption);
+    onLoationChange(selectedOption);
   };
 
   const options = [
     {value: '', label: '전체'},
-    {value: "Seoul", label: "서울특별시"},
-    {value: "Incheon", label: "인천광역시"},
-    {value: "Daejeon", label: "대전광역시"},
-    {value: "Kwangju", label: "광주광역시"},
-    {value: "Daegu", label: "대구광역시"},
-    {value: "Ulsan", label: "울산광역시"},
-    {value: "Busan", label: "부산광역시"},
-    {value: "Daejeon", label: "대전광역시"},
-    {value: "Gyeonggi", label: "경기도"},
-    {value: "Gangwon", label: "강원도"},
-    {value: "Chungbuk", label: "충청북도"},
-    {value: "Chungnam", label: "충청남도"},
-    {value: "Jeonbuk", label: "전라북도"},
-    {value: "Jeonnam", label: "전라남도"},
-    {value: "Gyeongbuk", label: "경상북도"},
-    {value: "Gyeongnam", label: "경상남도"},
-    {value: "Jeju", label: "제주"}
+    {value: 1, label: "서울특별시"},
+    {value: 2, label: "인천광역시"},
+    {value: 3, label: "대전광역시"},
+    {value: 4, label: "대구광역시"},
+    {value: 5, label: "광주광역시"},
+    {value: 6, label: "부산광역시"},
+    {value: 7, label: "울산광역시"},
+    {value: 8, label: "세종특별자치시"},
+    {value: 31, label: "경기도"},
+    {value: 32, label: "강원도"},
+    {value: 33, label: "충청북도"},
+    {value: 34, label: "충청남도"},
+    {value: 35, label: "경상북도"},
+    {value: 36, label: "경상남도"},
+    {value: 37, label: "전라북도"},
+    {value: 38, label: "전라남도"},
+    {value: 39, label: "제주"}
   ];
 
   return (

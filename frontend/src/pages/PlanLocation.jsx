@@ -6,17 +6,15 @@ import { useParams, useLocation } from 'react-router-dom';
 
 import '../css/planLocation.css';
 
-let apiaddress = "https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?serviceKey=D%2FJ%2FlDBli945sgTmEa%2FEjij5mIiOiusk7won7b%2FJTZhT0OfGmLByJ%2F2LHpNh2bwG4jRPBRyBePiYPmd45CU0Dw%3D%3D&numOfRows=1000&pageNo=1&MobileOS=WIN&MobileApp=AppTest&listYN=Y&arrange=C&_type=json"
-let apiaddress2 = "https://apis.data.go.kr/B551011/KorWithService1/detailWithTour1?serviceKey=D%2FJ%2FlDBli945sgTmEa%2FEjij5mIiOiusk7won7b%2FJTZhT0OfGmLByJ%2F2LHpNh2bwG4jRPBRyBePiYPmd45CU0Dw%3D%3D&MobileOS=WIN&MobileApp=AppTest&_type=json&contentId="
+let apiaddress = `https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?serviceKey=${process.env.REACT_APP_API_KEY}&numOfRows=1000&pageNo=1&MobileOS=WIN&MobileApp=AppTest&listYN=Y&arrange=C&_type=json`
+let apiaddress2 = `https://apis.data.go.kr/B551011/KorWithService1/detailWithTour1?serviceKey=${process.env.REACT_APP_API_KEY}&MobileOS=WIN&MobileApp=AppTest&_type=json&contentId=`
 
 const { kakao } = window;
 window.map = null;
 
 function PlanLocation() {
   const listRef = useRef(null);
-
   const [barrierfreeInfo, setBarrierfreeInfo] = useState([]);
-
   const [selectedMarker, setSelectedMarker] = useState(null);
 
   const location = useLocation();
@@ -31,15 +29,11 @@ function PlanLocation() {
 
   const [selectedItems, setSelectedItems] = useState([]); //선택한 관광지 요소
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const areaCode = searchParams.get('areaCode');
-
-    const fetchData = async () => {
+    const fetchData = async (areaCode) => {
       try {
         const api = `${apiaddress}&areaCode=${areaCode}`
-        //console.log(api);
         await axios.get(api).then((res) => {
+          console.log(res.data)
           const data = res.data.response.body.items.item
           setBarrierfreeInfo(data);
           console.log(data);
@@ -48,15 +42,20 @@ function PlanLocation() {
         console.log(e)
       }
     }
-    fetchData();
-  }, []);
+
+  useEffect(() => {
+  const searchParams = new URLSearchParams(location.search);
+  const areaCode = searchParams.get('areaCode');
+  fetchData(areaCode);
+
+  }, [location]);
 
   useEffect(() => {
 
     if (barrierfreeInfo.length > 0 && window.map == null) {
       var container = document.getElementById('map'); //지도를 담을 영역의 DOM 레퍼런스
       var options = { //지도를 생성할 때 필요한 기본 옵션
-        center: new kakao.maps.LatLng(35.8780669221, 128.6294594533), //지도의 중심좌표. y,x 순서로 적으면됨
+        center: new kakao.maps.LatLng(37.5665, 126.9780), //지도의 중심좌표. y,x 순서로 적으면됨
         level: 7 //지도의 레벨(확대, 축소 정도)
       };
 
@@ -111,7 +110,7 @@ function PlanLocation() {
       content: iwContent,
       map: map,
       position: marker.getPosition()
-    });
+    }, [barrierfreeInfo]);
 
     // 마커에 클릭이벤트를 등록합니다
     kakao.maps.event.addListener(marker, 'click', async function () {
