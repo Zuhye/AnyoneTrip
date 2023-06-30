@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header.jsx';
 import axios from 'axios';
 
-import { useParams, useLocation } from 'react-router-dom';
+import {  useLocation } from 'react-router-dom';
+import queryString from 'query-string';
 
 import '../css/planLocation.css';
 
@@ -24,19 +25,32 @@ function PlanLocation() {
 
   // 별도의 객체를 활용하여 마커와 관련 정보를 저장합니다
   const [markerInfoMap, setMarkerInfoMap] = useState({});
-
-  const [overlayOpen, setOverlayOpen] = useState({});
+  // const [overlayOpen, setOverlayOpen] = useState({});
 
   const [selectedItems, setSelectedItems] = useState([]); //선택한 관광지 요소
+
+  const {areaCode, startDate, endDate} = location.state;
+  const startDateObj = new Date(startDate);
+  const endDateObj = new Date(endDate);
+
+  const dateArray = [];
+  const currentDate = startDateObj;
+
+  while(currentDate <= endDateObj) {
+    dateArray.push(currentDate.toISOString().split('T')[0]);
+    currentDate.setDate(currentDate.getDate()+1);
+  }
+
+  console.log(dateArray)
 
     const fetchData = async (areaCode) => {
       try {
         const api = `${apiaddress}&areaCode=${areaCode}`
         await axios.get(api).then((res) => {
-          console.log(res.data)
+          // console.log(res.data)
           const data = res.data.response.body.items.item
           setBarrierfreeInfo(data);
-          console.log(data);
+          // console.log(data);
         })
       } catch (e) {
         console.log(e)
@@ -44,10 +58,8 @@ function PlanLocation() {
     }
 
   useEffect(() => {
-  const searchParams = new URLSearchParams(location.search);
-  const areaCode = searchParams.get('areaCode');
-  fetchData(areaCode);
-
+  fetchData(areaCode)
+  console.log(dateArray)
   }, [location]);
 
   useEffect(() => {
@@ -167,9 +179,6 @@ function PlanLocation() {
   
       const data = await response.json();
       const {elevator, restroom, parking } = data.response.body.items.item[0];
-
-      console.log(data.response.body.items.item);
-      console.log(title);
   
       const content = `
         <div class="wrap">
@@ -209,9 +218,7 @@ function PlanLocation() {
       parseFloat(mapx)
     );
 
-    console.log(window.map);
     if (window.map) {
-      console.log(window.map);
       window.map.setCenter(position); // map 객체가 유효한 경우에만 setCenter 함수 호출
     }
 
@@ -237,9 +244,6 @@ function PlanLocation() {
 
     // 이미 선택된 항목 중에 동일한 contentid가 있는지 확인
     const isDuplicate = selectedItems.some((item) => item.contentid === contentid);
-
-    console.log(isDuplicate);
-    console.log(selectedItems);
     if (isDuplicate) {
       // 이미 선택된 항목 중에 동일한 contentid가 있다면 아무 작업을 수행하지 않음
       return;
@@ -249,7 +253,9 @@ function PlanLocation() {
     const markerInfo = markerInfoMap[contentid];
     if (markerInfo) {
       const { contentid, title, overlay } = markerInfo;
+
       setSelectedItems((prevItems) => [...prevItems, { title, contentid, overlay }]); // 수정된 부분: overlay도 추가
+      
     }
   }
 
@@ -258,6 +264,8 @@ function PlanLocation() {
       prevItems.filter((item) => item.contentid !== contentid)
     );
   };
+
+
 
   var mapobject = (
     <div id="map" className="map"></div>
@@ -275,15 +283,15 @@ function PlanLocation() {
     ))
   );
 
+
   const handleConfirmClick = () => {
     // item-container의 정보를 다른 API로 전송하는 로직을 작성합니다
     // 여기서 selectedItems 배열에 접근하여 필요한 데이터를 전송할 수 있습니다
-    console.log("selectedItems");
-    console.log(selectedItems);
+    
     // 여기에 API 호출 또는 데이터 처리 로직을 추가합니다
   };
 
-  var page = (
+  const page = (
     <div className="container">
       <div id="listcontainer">
         <ul className="list" ref={listRef}>
@@ -294,27 +302,28 @@ function PlanLocation() {
         <div id="mapcontainer">
           {mapobject}
         </div>
-        <div id="item3">
-          {selectedItems.map((item) => (
-            <div key={item.contentid} className="item-container">
-              <div className="item-title">{item.title}</div>
+        {dateArray.map((date, index)=> (
+        <div key={index} className={"date"+index}>
+          <h4>{index+1}일차</h4>
+            <div id={`item${index+1}`}>
+            {selectedItems.map((item) => (
+              <div key={item.contentid} className="item-container">
+                <div className="item-title">{item.title}</div>
+                <button id="cancel-button" className="cancel-button" onClick={() => handleCancelClick(item.contentid)}>
+                  -
+                </button>
+              </div>
+            ))}
               <button
-                id="cancel-button"
-                className="cancel-button"
-                onClick={() => handleCancelClick(item.contentid)}
+                id="confirm-button"
+                className="confirm-button"
+                onClick={handleConfirmClick}
               >
-                -
+                확정하기
               </button>
-            </div>
-          ))}
-            <button
-              id="confirm-button"
-              className="confirm-button"
-              onClick={handleConfirmClick}
-            >
-              확정하기
-            </button>
+          </div> 
         </div>
+      ))}    
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import Footer from '../components/Footer.jsx';
 import Select from 'react-select';
 import { Button, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import {ko} from 'date-fns/locale';
 import '../css/planpage.css';
 
 function PlanPage() {
@@ -29,13 +29,28 @@ function PlanPage() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const startDateString = startDate.toISOString().substring(0, 10);
-    const endDateString = endDate.toISOString().substring(0, 10);
-    console.log(`Selected dates: ${startDateString} - ${endDateString}`);
-    console.log(`Selected location: ${selectedOption.value}`);
+
+    const startYear = startDate.getFullYear();
+    const startMonth = String(startDate.getMonth() + 1).padStart(2, '0');
+    const startDay = String(startDate.getDate()).padStart(2, '0');
+
+    const endYear = endDate.getFullYear();
+    const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+    const endDay = String(endDate.getDate()).padStart(2, '0');
+
+    const formattedStartDate = `${startYear}-${startMonth}-${startDay}`;
+    const formattedEndDate = `${endYear}-${endMonth}-${endDay}`;
+
     const areaCode = selectedOption ? selectedOption.value : '';
-    const url = `/PlanLocation?areaCode=${areaCode}&startDate=${startDateString}&endDate=${endDateString}`
-    navigate(url);
+    const data = {
+      areaCode,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate
+    }
+
+    console.log(data)
+
+    navigate('/PlanLocation', {state: data});
   };
 
 
@@ -70,6 +85,7 @@ function PlanPage() {
                 name="startDate"
                 value={startDate}
                 onChange={handleStartDateChange}
+                locale={ko ? ko.code : 'en-US'} // 대한민국 로케일을 문자열로 변환
               />
             </div>
             <div className="calendar-wrapper">
@@ -79,6 +95,7 @@ function PlanPage() {
                 name="endDate"
                 value={endDate}
                 onChange={handleEndDateChange}
+                locale={ko ? ko.code : 'en-US'}
               />
             </div>
           </div>
