@@ -1,0 +1,55 @@
+.modal {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background-color: rgba(0, 0, 0, 0.4);
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ z-index: 100;
+}
+
+.modalBody {
+    position: absolute;
+    height: 300px;
+    padding: 40px;
+    text-align: center;
+    background-color:white;
+    border-radius: 10px;
+    box-shadow: 0 2px 3px 0 rgba(34, 36, 38, 0.15);
+}
+
+.closeBtn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    border: none;
+    color: rgba(0, 0, 0, 0.7);
+    background-color: transparent;
+    font-size: 20px;
+}
+
+.closeBtn:hover {
+    cursor: pointer;
+}
+
+.listdate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.listdate button {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: beige;
+    border: none;
+    cursor: pointer;
+}
+
+.modalBody h3 {
+    margin-bottom: 10px;
+}

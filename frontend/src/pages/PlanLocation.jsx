@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header.jsx';
+import Modal from '../components/Modal.jsx';
 import axios from 'axios';
 
 import {  useLocation } from 'react-router-dom';
@@ -17,7 +18,8 @@ function PlanLocation() {
   const listRef = useRef(null);
   const [barrierfreeInfo, setBarrierfreeInfo] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
-
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const location = useLocation();
 
   // 지도에 표시된 마커 객체를 가지고 있을 배열입니다
@@ -41,8 +43,6 @@ function PlanLocation() {
     currentDate.setDate(currentDate.getDate()+1);
   }
 
-  console.log(dateArray)
-
     const fetchData = async (areaCode) => {
       try {
         const api = `${apiaddress}&areaCode=${areaCode}`
@@ -59,7 +59,6 @@ function PlanLocation() {
 
   useEffect(() => {
   fetchData(areaCode)
-  console.log(dateArray)
   }, [location]);
 
   useEffect(() => {
@@ -242,20 +241,22 @@ function PlanLocation() {
 
     const contentid = event.target.dataset.contentid;
 
-    // 이미 선택된 항목 중에 동일한 contentid가 있는지 확인
-    const isDuplicate = selectedItems.some((item) => item.contentid === contentid);
-    if (isDuplicate) {
-      // 이미 선택된 항목 중에 동일한 contentid가 있다면 아무 작업을 수행하지 않음
-      return;
-    }
+    // // 이미 선택된 항목 중에 동일한 contentid가 있는지 확인
+    // const isDuplicate = selectedItems.some((item) => item.contentid === contentid);
+    // if (isDuplicate) {
+    //   // 이미 선택된 항목 중에 동일한 contentid가 있다면 아무 작업을 수행하지 않음
+    //   return;
+    // }
 
     // 선택된 마커 정보 가져오기
     const markerInfo = markerInfoMap[contentid];
     if (markerInfo) {
       const { contentid, title, overlay } = markerInfo;
-
+      const selectedItem = {title, contentid, overlay}
       setSelectedItems((prevItems) => [...prevItems, { title, contentid, overlay }]); // 수정된 부분: overlay도 추가
       
+      setShowModal(true);
+      setSelectedDate('');
     }
   }
 
@@ -265,7 +266,24 @@ function PlanLocation() {
     );
   };
 
+  
+  function handleCloseModal() {
+    setShowModal(false);
+}
 
+  const handleDateClick = (date)=> {
+    setSelectedDate(date);
+    setShowModal(false);
+
+    setSelectedItems((prevItems)=>
+    prevItems.map((item)=> {
+      if(item.contentid === selectedMarker.contentid) {
+        return {...item, date};
+      }
+      return item;
+    })
+    )
+  }
 
   var mapobject = (
     <div id="map" className="map"></div>
@@ -291,6 +309,26 @@ function PlanLocation() {
     // 여기에 API 호출 또는 데이터 처리 로직을 추가합니다
   };
 
+  function Modal({dateArray, handleDateClick, handleCloseModal}) {
+
+    return (
+        <div className="modal" onClick={()=>handleCloseModal}> 
+            <div className="modalBody" onClick={(e)=> e.stopPropagation()}>
+                <button className="closeBtn" onClick={()=>handleCloseModal}>X</button>
+                <h3>일자 선택</h3>
+                <div className="listdate">
+                {dateArray.map((date, index)=> (
+                    <button key={index} onClick={()=> handleDateClick(date)}>
+                        {date}
+                    </button>
+                ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+
   const page = (
     <div className="container">
       <div id="listcontainer">
@@ -304,7 +342,8 @@ function PlanLocation() {
         </div>
         {dateArray.map((date, index)=> (
         <div key={index} className={"date"+index}>
-          <h4>{index+1}일차</h4>
+          <h4>{index+1}일차</h4> 
+          <h5 className='date-title'>{date}</h5>
             <div id={`item${index+1}`}>
             {selectedItems.map((item) => (
               <div key={item.contentid} className="item-container">
@@ -332,6 +371,9 @@ function PlanLocation() {
     <div>
       <Header />
       {page}
+      {showModal && (
+        <Modal dateArray={dateArray} handleDateClick={handleDateClick} closeModal={handleCloseModal}/>
+      )}
     </div>
   );
 }
