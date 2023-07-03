@@ -1,24 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header.jsx';
+import Modal from '../components/Modal.jsx';
 import axios from 'axios';
 
-import { useParams, useLocation } from 'react-router-dom';
+import {  useLocation } from 'react-router-dom';
+import queryString from 'query-string';
 
 import '../css/planLocation.css';
 
-let apiaddress = "https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?serviceKey=D%2FJ%2FlDBli945sgTmEa%2FEjij5mIiOiusk7won7b%2FJTZhT0OfGmLByJ%2F2LHpNh2bwG4jRPBRyBePiYPmd45CU0Dw%3D%3D&numOfRows=1000&pageNo=1&MobileOS=WIN&MobileApp=AppTest&listYN=Y&arrange=C&_type=json"
-let apiaddress2 = "https://apis.data.go.kr/B551011/KorWithService1/detailWithTour1?serviceKey=D%2FJ%2FlDBli945sgTmEa%2FEjij5mIiOiusk7won7b%2FJTZhT0OfGmLByJ%2F2LHpNh2bwG4jRPBRyBePiYPmd45CU0Dw%3D%3D&MobileOS=WIN&MobileApp=AppTest&_type=json&contentId="
+let apiaddress = `https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?serviceKey=${process.env.REACT_APP_API_KEY}&numOfRows=1000&pageNo=1&MobileOS=WIN&MobileApp=AppTest&listYN=Y&arrange=C&_type=json`
+let apiaddress2 = `https://apis.data.go.kr/B551011/KorWithService1/detailWithTour1?serviceKey=${process.env.REACT_APP_API_KEY}&MobileOS=WIN&MobileApp=AppTest&_type=json&contentId=`
 
 const { kakao } = window;
 window.map = null;
 
 function PlanLocation() {
   const listRef = useRef(null);
-
   const [barrierfreeInfo, setBarrierfreeInfo] = useState([]);
-
   const [selectedMarker, setSelectedMarker] = useState(null);
-
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const location = useLocation();
 
   // 지도에 표시된 마커 객체를 가지고 있을 배열입니다
@@ -26,37 +27,46 @@ function PlanLocation() {
 
   // 별도의 객체를 활용하여 마커와 관련 정보를 저장합니다
   const [markerInfoMap, setMarkerInfoMap] = useState({});
-
-  const [overlayOpen, setOverlayOpen] = useState({});
+  // const [overlayOpen, setOverlayOpen] = useState({});
 
   const [selectedItems, setSelectedItems] = useState([]); //선택한 관광지 요소
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const areaCode = searchParams.get('areaCode');
+  const {areaCode, startDate, endDate} = location.state;
+  const startDateObj = new Date(startDate);
+  const endDateObj = new Date(endDate);
 
-    const fetchData = async () => {
+  const dateArray = [];
+  const currentDate = startDateObj;
+
+  while(currentDate <= endDateObj) {
+    dateArray.push(currentDate.toISOString().split('T')[0]);
+    currentDate.setDate(currentDate.getDate()+1);
+  }
+
+    const fetchData = async (areaCode) => {
       try {
         const api = `${apiaddress}&areaCode=${areaCode}`
-        //console.log(api);
         await axios.get(api).then((res) => {
+          // console.log(res.data)
           const data = res.data.response.body.items.item
           setBarrierfreeInfo(data);
-          console.log(data);
+          // console.log(data);
         })
       } catch (e) {
         console.log(e)
       }
     }
-    fetchData();
-  }, []);
+
+  useEffect(() => {
+  fetchData(areaCode)
+  }, [location]);
 
   useEffect(() => {
 
     if (barrierfreeInfo.length > 0 && window.map == null) {
       var container = document.getElementById('map'); //지도를 담을 영역의 DOM 레퍼런스
       var options = { //지도를 생성할 때 필요한 기본 옵션
-        center: new kakao.maps.LatLng(35.8780669221, 128.6294594533), //지도의 중심좌표. y,x 순서로 적으면됨
+        center: new kakao.maps.LatLng(37.5665, 126.9780), //지도의 중심좌표. y,x 순서로 적으면됨
         level: 7 //지도의 레벨(확대, 축소 정도)
       };
 
@@ -111,7 +121,7 @@ function PlanLocation() {
       content: iwContent,
       map: map,
       position: marker.getPosition()
-    });
+    }, [barrierfreeInfo]);
 
     // 마커에 클릭이벤트를 등록합니다
     kakao.maps.event.addListener(marker, 'click', async function () {
@@ -168,9 +178,6 @@ function PlanLocation() {
   
       const data = await response.json();
       const {elevator, restroom, parking } = data.response.body.items.item[0];
-
-      console.log(data.response.body.items.item);
-      console.log(title);
   
       const content = `
         <div class="wrap">
@@ -210,9 +217,7 @@ function PlanLocation() {
       parseFloat(mapx)
     );
 
-    console.log(window.map);
     if (window.map) {
-      console.log(window.map);
       window.map.setCenter(position); // map 객체가 유효한 경우에만 setCenter 함수 호출
     }
 
@@ -236,21 +241,22 @@ function PlanLocation() {
 
     const contentid = event.target.dataset.contentid;
 
-    // 이미 선택된 항목 중에 동일한 contentid가 있는지 확인
-    const isDuplicate = selectedItems.some((item) => item.contentid === contentid);
-
-    console.log(isDuplicate);
-    console.log(selectedItems);
-    if (isDuplicate) {
-      // 이미 선택된 항목 중에 동일한 contentid가 있다면 아무 작업을 수행하지 않음
-      return;
-    }
+    // // 이미 선택된 항목 중에 동일한 contentid가 있는지 확인
+    // const isDuplicate = selectedItems.some((item) => item.contentid === contentid);
+    // if (isDuplicate) {
+    //   // 이미 선택된 항목 중에 동일한 contentid가 있다면 아무 작업을 수행하지 않음
+    //   return;
+    // }
 
     // 선택된 마커 정보 가져오기
     const markerInfo = markerInfoMap[contentid];
     if (markerInfo) {
       const { contentid, title, overlay } = markerInfo;
+      const selectedItem = {title, contentid, overlay}
       setSelectedItems((prevItems) => [...prevItems, { title, contentid, overlay }]); // 수정된 부분: overlay도 추가
+      
+      setShowModal(true);
+      setSelectedDate('');
     }
   }
 
@@ -259,6 +265,25 @@ function PlanLocation() {
       prevItems.filter((item) => item.contentid !== contentid)
     );
   };
+
+  
+  function handleCloseModal() {
+    setShowModal(false);
+}
+
+  const handleDateClick = (date)=> {
+    setSelectedDate(date);
+    setShowModal(false);
+
+    setSelectedItems((prevItems)=>
+    prevItems.map((item)=> {
+      if(item.contentid === selectedMarker.contentid) {
+        return {...item, date};
+      }
+      return item;
+    })
+    )
+  }
 
   var mapobject = (
     <div id="map" className="map"></div>
@@ -276,15 +301,35 @@ function PlanLocation() {
     ))
   );
 
+
   const handleConfirmClick = () => {
     // item-container의 정보를 다른 API로 전송하는 로직을 작성합니다
     // 여기서 selectedItems 배열에 접근하여 필요한 데이터를 전송할 수 있습니다
-    console.log("selectedItems");
-    console.log(selectedItems);
+    
     // 여기에 API 호출 또는 데이터 처리 로직을 추가합니다
   };
 
-  var page = (
+  function Modal({dateArray, handleDateClick, handleCloseModal}) {
+
+    return (
+        <div className="modal" onClick={()=>handleCloseModal}> 
+            <div className="modalBody" onClick={(e)=> e.stopPropagation()}>
+                <button className="closeBtn" onClick={()=>handleCloseModal}>X</button>
+                <h3>일자 선택</h3>
+                <div className="listdate">
+                {dateArray.map((date, index)=> (
+                    <button key={index} onClick={()=> handleDateClick(date)}>
+                        {date}
+                    </button>
+                ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+
+  const page = (
     <div className="container">
       <div id="listcontainer">
         <ul className="list" ref={listRef}>
@@ -295,27 +340,29 @@ function PlanLocation() {
         <div id="mapcontainer">
           {mapobject}
         </div>
-        <div id="item3">
-          {selectedItems.map((item) => (
-            <div key={item.contentid} className="item-container">
-              <div className="item-title">{item.title}</div>
+        {dateArray.map((date, index)=> (
+        <div key={index} className={"date"+index}>
+          <h4>{index+1}일차</h4> 
+          <h5 className='date-title'>{date}</h5>
+            <div id={`item${index+1}`}>
+            {selectedItems.map((item) => (
+              <div key={item.contentid} className="item-container">
+                <div className="item-title">{item.title}</div>
+                <button id="cancel-button" className="cancel-button" onClick={() => handleCancelClick(item.contentid)}>
+                  -
+                </button>
+              </div>
+            ))}
               <button
-                id="cancel-button"
-                className="cancel-button"
-                onClick={() => handleCancelClick(item.contentid)}
+                id="confirm-button"
+                className="confirm-button"
+                onClick={handleConfirmClick}
               >
-                -
+                확정하기
               </button>
-            </div>
-          ))}
-            <button
-              id="confirm-button"
-              className="confirm-button"
-              onClick={handleConfirmClick}
-            >
-              확정하기
-            </button>
+          </div> 
         </div>
+      ))}    
       </div>
     </div>
   );
@@ -324,6 +371,9 @@ function PlanLocation() {
     <div>
       <Header />
       {page}
+      {showModal && (
+        <Modal dateArray={dateArray} handleDateClick={handleDateClick} closeModal={handleCloseModal}/>
+      )}
     </div>
   );
 }
