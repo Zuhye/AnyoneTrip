@@ -9,6 +9,8 @@
 > </br>
 > 2023.05 ~ 
 
+## ✅ 프로젝트 소개
+
 #### 휠체어를 사용하거나 기타 장애로 인해서 평범한 관광 시설을 사용하는 데 어려움을 겪는 사람들이 많다. 
 이런 사람들이 불편 없이 산책하는 장소를 찾고, 여행 일정을 관리하기 위해 개발되었다.
 
@@ -50,10 +52,32 @@ dev/각자사용할 브랜치: 개인 사용할 브랜치로 각자 해당 브�
 
 
 
-## ✅ Stacks
+## ✅ 기술스택
 ---
 
 ### Devlopment
-<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=Javascript&logoColor=white"/>
-<img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB"/>
-<img src="https://img.shields.io/badge/Node.js-339933?style=flat&logo=Node.js&logoColor=white"/>
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=Javascript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
+![NodeJs](https://img.shields.io/badge/Node.js-339933?style=flat&logo=Node.js&logoColor=white)
+
+### Enviroment
+![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-007ACC?style=flat&logo=Visual%20Studio%20Code&logoColor=white)
+![Github](https://img.shields.io/badge/GitHub-181717?style=flat&logo=GitHub&logoColor=white)
+![IntelliJ](https://img.shields.io/badge/intellijidea-000000?style=flat&logo=intellijidea&logoColor=white)
+
+### Communication
+![Notion](https://img.shields.io/badge/Notion-000000?style=flat&logo=Notion&logoColor=white)
+![Discord](https://img.shields.io/badge/Discord-5865F2?style=flat&logo=Discord&logoColor=white)
+
+
+## ✅ 페이지별 화면
+---
+
+
+## ✅ 서비스 주요 기능
+---
+
+## ✅ 기획
+---
+
+## ✅ 제작
