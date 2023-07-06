@@ -1,12 +1,12 @@
 import React from "react";
 import '../css/modal.css';
 
-function Modal({dateArray, handleDateClick, handleCloseModal}) {
+function Modal({dateArray, handleDateClick, handleCloseClick}) {
 
     return (
-        <div className="modal" onClick={()=>handleCloseModal}> 
+        <div className="modal" onClick={handleCloseClick}> 
             <div className="modalBody" onClick={(e)=> e.stopPropagation()}>
-                <button className="closeBtn" onClick={()=>handleCloseModal}>X</button>
+                <button className="closeBtn" onClick={handleCloseClick}>X</button>
                 <h3>일자 선택</h3>
                 <div className="listdate">
                 {dateArray.map((date, index)=> (
@@ -19,5 +19,6 @@ function Modal({dateArray, handleDateClick, handleCloseModal}) {
         </div>
     )
 }
+
 
 export default Modal;
