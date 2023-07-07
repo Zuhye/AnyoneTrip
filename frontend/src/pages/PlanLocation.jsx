@@ -3,13 +3,13 @@ import Header from '../components/Header.jsx';
 import Modal from '../components/Modal.jsx';
 import axios from 'axios';
 
-import {  useLocation } from 'react-router-dom';
-import queryString from 'query-string';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import '../css/planLocation.css';
 
 let apiaddress = `https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?serviceKey=${process.env.REACT_APP_API_KEY}&numOfRows=1000&pageNo=1&MobileOS=WIN&MobileApp=AppTest&listYN=Y&arrange=C&_type=json`
 let apiaddress2 = `https://apis.data.go.kr/B551011/KorWithService1/detailWithTour1?serviceKey=${process.env.REACT_APP_API_KEY}&MobileOS=WIN&MobileApp=AppTest&_type=json&contentId=`
+let apiaddress3 = `https://apis.data.go.kr/B551011/KorWithService1/areaCode1?numOfRows=30&pageNo=1?&MobileOS=WIN&MobileApp=BarreierFree&serviceKey=${process.env.REACT_APP_API_KEY}&_type=json`
 
 const { kakao } = window;
 window.map = null;
@@ -20,7 +20,9 @@ function PlanLocation() {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [area, setArea] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // 지도에 표시된 마커 객체를 가지고 있을 배열입니다
   var markers = [];
@@ -32,7 +34,8 @@ function PlanLocation() {
   const [selectedItems, setSelectedItems] = useState({}); //선택한 관광지 요소
   const [currentItem, setCurrentItem] = useState(null);
 
-  const {areaCode, startDate, endDate} = location.state;
+  const {areaCode, startDate, endDate} = location.state || {};
+
   const startDateObj = new Date(startDate);
   const endDateObj = new Date(endDate);
 
@@ -55,11 +58,16 @@ function PlanLocation() {
         console.log(e)
       }
     }
-
-  useEffect(() => {
-  fetchData(areaCode)
-  }, [location]);
-
+  
+    useEffect(() => {
+      if (!areaCode || !startDate || !endDate) {
+        alert('전달된 데이터가 없습니다. 지역과 날짜를 설정하시오.');
+        navigate('/plan');
+      } else {
+        fetchData(areaCode);
+      }
+    }, [location, navigate, areaCode, startDate, endDate]);
+  
   useEffect(() => {
 
     if (barrierfreeInfo.length > 0 && window.map == null) {
@@ -247,8 +255,6 @@ function PlanLocation() {
       const selectedItem = {title, contentid, overlay}
 
       setCurrentItem(selectedItem);
-
-      console.log(selectedItems)
       setShowModal(true);
     }
   }
@@ -296,7 +302,6 @@ function PlanLocation() {
         // Date does not exist, create a new array with the item
         updatedItems[date] = [placeInfo];
       }
-      console.log(updatedItems);
       return updatedItems;
     }); // 수정된 부분: overlay도 추가
 
@@ -311,21 +316,60 @@ function PlanLocation() {
       <li
         key={info.contentid}
         onClick={() => handleListClick(info)}
-        className={selectedMarker && selectedMarker.title === info.title ? 'selected' : ''}
+        className={info.contentid}
       >
         {info.title}
       </li>
     ))
   );
 
+  const getArea = async () => {
+    try{
+      await axios.get(apiaddress3).then((res)=> {
+          const data = res.data.response.body.items
+          if(data) {
+              const itemList = data.item
+              for(let i = 0 ; i < itemList.length; i++) {
+                const item = itemList[i];
+                if(item.code == areaCode) {
+                  const targetArea = item;
+                  setArea(targetArea.name);
+                }
+              }
+          }
+      })
+  } catch(e) {
+      console.error(e);
+  }
+}
 
-  const handleConfirmClick = (date) => {
-    // item-container의 정보를 다른 API로 전송하는 로직을 작성합니다
-    // 여기서 selectedItems 배열에 접근하여 필요한 데이터를 전송할 수 있습니다
+useEffect(()=> {
+  getArea();
+}, [])
+
+
+  const handleConfirmClick = async (date) => {
+
+    var titleString = selectedItems[date].map(function(obj) {
+      return obj.title;
+    }).join(', ');
     
-    // 여기에 API 호출 또는 데이터 처리 로직을 추가합니다
-  };
+    const info = {
+      date: date,
+      tripName: `${area} 여행`,
+      place: titleString
+    }
 
+    try {
+      await axios.post('/plans', info)
+      .then((res=> {
+        console.log(res)
+      }))
+    } catch(e) {
+      console.log(e);
+    }
+    
+  };
 
 
   const page = (
@@ -359,7 +403,7 @@ function PlanLocation() {
               <button
                 id="confirm-button"
                 className="confirm-button"
-                onClick={handleConfirmClick(date)}
+                onClick={() =>handleConfirmClick(date)}
               >
                 확정하기
               </button>
