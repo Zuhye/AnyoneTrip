@@ -20,7 +20,7 @@ function SiteListPage() {
 
     useEffect(()=> {
         const siteData = async()=> {
-            const api = `https://apis.data.go.kr/B551011/KorWithService1/areaBasedList1?numOfRows=30&pageNo=1&MobileOS=WIN&MobileApp=BarreierFree&serviceKey=${process.env.REACT_APP_API_KEY}&_type=json&arrange=Q`
+            const api = `/api/sites`
 
             try{
                 await axios.get(api).then((res)=> {
@@ -28,7 +28,6 @@ function SiteListPage() {
                     if(data) {
                         setSite(data.item);
                         setFilteredSite(data.item);
-                        
                     }
                 })
             } catch(e) {
