@@ -368,6 +368,8 @@ useEffect(()=> {
     } catch(e) {
       console.log(e);
     }
+
+    alert(`${date}의 일정이 저장되었습니다.`)
     
   };
 
